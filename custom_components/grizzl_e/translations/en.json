@@ -6,8 +6,7 @@
         "description": "Choose how Home Assistant should talk to your Grizzl-E EVSE.",
         "menu_options": {
           "connection": "Local: the charger's web interface (Page Access)",
-          "cloud": "Grizzl-E Connect cloud: email and password",
-          "cloud_tokens": "Grizzl-E Connect cloud: tokens (Sign in with Apple accounts)"
+          "cloud": "Grizzl-E Connect cloud: email and password"
         }
       },
       "connection": {
@@ -34,14 +33,6 @@
           "password": "Password"
         }
       },
-      "cloud_tokens": {
-        "title": "Grizzl-E Connect tokens",
-        "description": "Accounts that use Sign in with Apple have no password. Paste the token and refreshToken captured from the Grizzl-E Connect app's traffic.",
-        "data": {
-          "token": "Token",
-          "refresh_token": "Refresh token"
-        }
-      },
       "station": {
         "title": "Choose a charger",
         "description": "Select the charger to add. Add the integration again for each additional charger.",
@@ -53,9 +44,7 @@
         "title": "Sign in to Grizzl-E Connect again",
         "description": "Grizzl-E Connect no longer accepts the saved credentials for {account}.",
         "data": {
-          "password": "Password",
-          "token": "Token",
-          "refresh_token": "Refresh token"
+          "password": "Password"
         }
       }
     },

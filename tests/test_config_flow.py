@@ -49,7 +49,7 @@ async def start_reauth(hass, entry):
 async def start(hass, option):
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     assert result["type"] is FlowResultType.MENU
-    assert result["menu_options"] == ["connection", "cloud", "cloud_tokens"]
+    assert result["menu_options"] == ["connection", "cloud"]
     return await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": option})
 
 
@@ -120,22 +120,6 @@ async def test_cloud_login_errors(hass, aioclient_mock, status, body, error):
     assert result["errors"] == {"base": error}
 
 
-async def test_cloud_tokens(hass, aioclient_mock):
-    aioclient_mock.get(f"{API}/client/stations", json=copy.deepcopy(STATIONS))
-    result = await start(hass, "cloud_tokens")
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {CONF_TOKEN: " t ", CONF_REFRESH_TOKEN: "r"}
-    )
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-    assert result["data"] == {
-        CONF_CONNECTION_TYPE: CONNECTION_CLOUD,
-        CONF_STATION_ID: STATION_ID,
-        CONF_TOKEN: "t",
-        CONF_REFRESH_TOKEN: "r",
-    }
-    assert aioclient_mock.mock_calls[0][3]["authorization"] == "Bearer t"
-
-
 async def test_cloud_no_stations(hass, aioclient_mock):
     aioclient_mock.post(f"{API}/client/auth/login", json={"token": "t", "refreshToken": "r"})
     aioclient_mock.get(f"{API}/client/stations", json={"stations": [], "groups": []})
@@ -187,25 +171,25 @@ async def test_reauth_with_password(hass, aioclient_mock):
     assert entry.data[CONF_REFRESH_TOKEN] == "new-r"
 
 
-async def test_reauth_with_tokens_wrong_account(hass, aioclient_mock):
+async def test_reauth_wrong_account(hass, aioclient_mock):
     entry = MockConfigEntry(
         domain=DOMAIN,
         unique_id=STATION_ID,
         data={
             CONF_CONNECTION_TYPE: CONNECTION_CLOUD,
             CONF_STATION_ID: STATION_ID,
+            CONF_EMAIL: "user@example.com",
+            CONF_PASSWORD: "old",
             CONF_TOKEN: "old",
             CONF_REFRESH_TOKEN: "old",
         },
     )
     entry.add_to_hass(hass)
+    aioclient_mock.post(f"{API}/client/auth/login", json={"token": "t", "refreshToken": "r"})
     aioclient_mock.get(f"{API}/client/stations", json={"stations": [], "groups": []})
 
     result = await start_reauth(hass, entry)
-    assert set(result["data_schema"].schema) == {CONF_TOKEN, CONF_REFRESH_TOKEN}
-    result = await hass.config_entries.flow.async_configure(
-        result["flow_id"], {CONF_TOKEN: "t", CONF_REFRESH_TOKEN: "r"}
-    )
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {CONF_PASSWORD: "pw"})
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"base": "station_not_found"}
 
