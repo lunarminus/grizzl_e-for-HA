@@ -65,7 +65,7 @@ class GrizzleEConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         """Let the user choose between the charger's web interface and the cloud."""
         return self.async_show_menu(
-            step_id="user", menu_options=["connection", "cloud", "cloud_tokens"]
+            step_id="user", menu_options=["connection", "cloud"]
         )
 
     async def async_step_connection(self, user_input=None):
@@ -199,29 +199,6 @@ class GrizzleEConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_cloud_tokens(self, user_input=None):
-        """Use a token pair captured from the app (Sign in with Apple accounts)."""
-        errors = {}
-        if user_input is not None:
-            client = GrizzleConnectClient(
-                async_get_clientsession(self.hass),
-                token=user_input[CONF_TOKEN].strip(),
-                refresh_token=user_input[CONF_REFRESH_TOKEN].strip(),
-            )
-            errors = await self._async_fetch_stations(client)
-            if not errors:
-                self._cloud_data = {
-                    CONF_TOKEN: client.token,
-                    CONF_REFRESH_TOKEN: client.refresh_token,
-                }
-                return await self.async_step_station()
-
-        return self.async_show_form(
-            step_id="cloud_tokens",
-            data_schema=_TOKENS_SCHEMA,
-            errors=errors,
-        )
-
     async def _async_fetch_stations(self, client):
         """Fetch the account's stations into ``self._stations``; return form errors."""
         try:
@@ -281,51 +258,39 @@ class GrizzleEConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_reauth_confirm(self, user_input=None):
         entry = self._reauth_entry
-        uses_password = bool(entry.data.get(CONF_EMAIL))
         errors = {}
         if user_input is not None:
-            if uses_password:
-                client = GrizzleConnectClient(
-                    async_get_clientsession(self.hass),
-                    email=entry.data[CONF_EMAIL],
-                    password=user_input[CONF_PASSWORD],
-                )
-            else:
-                client = GrizzleConnectClient(
-                    async_get_clientsession(self.hass),
-                    token=user_input[CONF_TOKEN].strip(),
-                    refresh_token=user_input[CONF_REFRESH_TOKEN].strip(),
-                )
+            client = GrizzleConnectClient(
+                async_get_clientsession(self.hass),
+                email=entry.data[CONF_EMAIL],
+                password=user_input[CONF_PASSWORD],
+            )
             errors = await self._async_fetch_stations(client)
             if not errors and entry.data[CONF_STATION_ID] not in self._stations:
                 errors = {"base": "station_not_found"}
             if not errors:
                 data = {
                     **entry.data,
+                    CONF_PASSWORD: user_input[CONF_PASSWORD],
                     CONF_TOKEN: client.token,
                     CONF_REFRESH_TOKEN: client.refresh_token,
                 }
-                if uses_password:
-                    data[CONF_PASSWORD] = user_input[CONF_PASSWORD]
                 self.hass.config_entries.async_update_entry(entry, data=data)
                 await self.hass.config_entries.async_reload(entry.entry_id)
                 return self.async_abort(reason="reauth_successful")
 
-        if uses_password:
-            schema = vol.Schema(
-                {
-                    vol.Required(CONF_PASSWORD): TextSelector(
-                        TextSelectorConfig(type=TextSelectorType.PASSWORD)
-                    )
-                }
-            )
-        else:
-            schema = _TOKENS_SCHEMA
+        schema = vol.Schema(
+            {
+                vol.Required(CONF_PASSWORD): TextSelector(
+                    TextSelectorConfig(type=TextSelectorType.PASSWORD)
+                )
+            }
+        )
         return self.async_show_form(
             step_id="reauth_confirm",
             data_schema=schema,
             errors=errors,
-            description_placeholders={"account": entry.data.get(CONF_EMAIL) or entry.title},
+            description_placeholders={"account": entry.data[CONF_EMAIL]},
         )
 
     @staticmethod
@@ -359,14 +324,6 @@ class GrizzleEOptionsFlow(config_entries.OptionsFlow):
             }
         )
         return self.async_show_form(step_id="init", data_schema=schema)
-
-
-_TOKENS_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_TOKEN): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
-        vol.Required(CONF_REFRESH_TOKEN): TextSelector(TextSelectorConfig(type=TextSelectorType.PASSWORD)),
-    }
-)
 
 
 def _station_title(station):

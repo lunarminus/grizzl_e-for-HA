@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased
-- **Grizzl-E Connect cloud support**, alongside the existing local web interface connection. When adding the integration, choose Local, cloud with email and password, or cloud with tokens (for Sign in with Apple accounts).
+- **Grizzl-E Connect cloud support**, alongside the existing local web interface connection. When adding the integration, choose Local or Grizzl-E Connect cloud (email and password).
     - Sensors and binary sensors for station and per-connector status, power, current, voltage, temperature, and session energy, time and cost
     - Charge Mode select (Active / Inactive / Schedule), Current Limit number, Reboot button, and a switch per schedule or rate zone
     - Services to create, update and delete schedules and rate zones, and to set the base electricity rate

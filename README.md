@@ -68,7 +68,6 @@ This integration provides the following features:
 4. Choose how to connect:
     - **Local**: enter the IP address or hostname of your EVSE, then the username and password (default is usually admin/admin)
     - **Grizzl-E Connect cloud (email and password)**: sign in with your Grizzl-E Connect app account. If the account has more than one charger, pick one; add the integration again for each other charger.
-    - **Grizzl-E Connect cloud (tokens)**: for accounts that use Sign in with Apple and so have no password. Paste the `token` and `refreshToken` captured from the app's traffic.
 
 Existing local setups keep working unchanged. The polling interval can be changed under the integration's **Configure** button; cloud connections default to 30 seconds and can't go below 10.
 

@@ -55,9 +55,7 @@ def station_id(station: dict[str, Any]) -> str | None:
 class GrizzleConnectClient:
     """Grizzl-E Connect API client.
 
-    Authenticates with email/phone and password, or with a token/refreshToken
-    pair captured from the app (for Sign in with Apple accounts, which have no
-    password). ``on_tokens_updated`` is called whenever new tokens are issued
+    Authenticates with email/phone and password. ``on_tokens_updated`` is called whenever new tokens are issued
     so they can be persisted.
     """
 
@@ -184,8 +182,6 @@ class GrizzleConnectClient:
                     await self.refresh()
                     return
                 except GrizzleConnectAuthError:
-                    if not self._password:
-                        raise
                     _LOGGER.debug("Refresh token rejected, logging in again")
             await self.login()
 

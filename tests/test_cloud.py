@@ -452,7 +452,8 @@ async def test_rejected_refresh_token_logs_in_again(hass, aioclient_mock):
 async def test_auth_failure_starts_reauth(hass, aioclient_mock):
     aioclient_mock.get(f"{API}/client/stations", status=HTTPStatus.UNAUTHORIZED)
     aioclient_mock.post(f"{API}/client/auth/refresh-token", status=HTTPStatus.UNAUTHORIZED)
-    entry = cloud_entry(**{CONF_EMAIL: None, CONF_PASSWORD: None})
+    aioclient_mock.post(f"{API}/client/auth/login", status=HTTPStatus.UNAUTHORIZED)
+    entry = cloud_entry()
     entry.add_to_hass(hass)
     assert not await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
