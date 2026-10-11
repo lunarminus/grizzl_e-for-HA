@@ -1,6 +1,5 @@
 import aiohttp
 import asyncio
-import async_timeout
 import logging
 import voluptuous as vol
 
@@ -62,7 +61,7 @@ class GrizzleEConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
                     try:
                         # Outer timeout as a safety net
-                        async with async_timeout.timeout(REQUEST_TIMEOUT + 1):
+                        async with asyncio.timeout(REQUEST_TIMEOUT + 1):
                             async with session.post(url, auth=auth) as resp:
                                 if resp.status == 200:
                                     self._host = user_input[CONF_HOST]
@@ -138,17 +137,22 @@ class GrizzleEConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     @staticmethod
     @callback
     def async_get_options_flow(config_entry):
-        return GrizzleEOptionsFlow()
+        return GrizzleEOptionsFlow(config_entry)
 
 
 class GrizzleEOptionsFlow(config_entries.OptionsFlow):
     """Handle options for Grizzl-E EV Charger."""
 
+    def __init__(self, config_entry):
+        # Kept privately: newer Home Assistant sets ``self.config_entry`` itself
+        # and rejects assigning it, older versions don't provide it at all.
+        self._entry = config_entry
+
     async def async_step_init(self, user_input=None):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        current = self.config_entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
+        current = self._entry.options.get("scan_interval", DEFAULT_SCAN_INTERVAL)
         schema = vol.Schema(
             {
                 vol.Required("scan_interval", default=current): cv.positive_int,
