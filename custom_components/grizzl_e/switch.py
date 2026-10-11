@@ -102,7 +102,7 @@ class GrizzleEScheduleSwitch(GrizzleECloudEntity, SwitchEntity):
             "start": _hhmm(zone.get("startHours"), zone.get("startMinutes")),
             "end": _hhmm(zone.get("endHours"), zone.get("endMinutes")),
             "all_day": bool(zone.get("allDay")),
-            "days": [WEEKDAYS[day] for day in zone.get("days") or [] if isinstance(day, int) and 0 <= day < 7],
+            "days": _day_names(zone.get("days")),
         }
         if zone.get("isSchedule"):
             attrs["current_limit"] = zone.get("currentLimit")
@@ -126,6 +126,13 @@ class GrizzleEScheduleSwitch(GrizzleECloudEntity, SwitchEntity):
         await self.coordinator.async_command(
             self.coordinator.client.enable_schedule(self.coordinator.station_id, self.zone_id, enabled)
         )
+
+
+def _day_names(days):
+    """The cloud stores an empty list for a schedule that runs every day."""
+    if not days:
+        return list(WEEKDAYS)
+    return [WEEKDAYS[day] for day in days if isinstance(day, int) and 0 <= day < 7]
 
 
 def _hhmm(hours, minutes):

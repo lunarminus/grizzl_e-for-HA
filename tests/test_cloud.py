@@ -133,6 +133,10 @@ async def test_setup_creates_cloud_entities(hass, aioclient_mock):
     assert schedule.attributes["friendly_name"].endswith("Schedule Off-peak123")
     assert schedule.attributes["start"] == "23:00"
     assert schedule.attributes["end"] == "07:00"
+    # Off-peak123 is stored with an empty day list, which means every day.
+    assert schedule.attributes["days"] == [
+        "sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"
+    ]
     zone = state(hass, "switch", entry, f"schedule_{RATE_ZONE_ID}")
     assert zone.attributes["friendly_name"].endswith("Rate Zone Winter")
     assert zone.attributes["days"] == ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
