@@ -13,6 +13,7 @@ from .const import (
 )
 from .cloud import CLOUD_PLATFORMS, async_setup_cloud_entry, is_cloud_entry
 from .device import GrizzleEDevice
+from .services import async_setup_services
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,6 +24,7 @@ CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the Grizzl-E component."""
     hass.data.setdefault(DOMAIN, {})
+    async_setup_services(hass)
     return True
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):

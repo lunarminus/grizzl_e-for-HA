@@ -86,5 +86,146 @@
         }
       }
     }
+  },
+  "selector": {
+    "weekday": {
+      "options": {
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday"
+      }
+    }
+  },
+  "services": {
+    "set_schedule": {
+      "name": "Set schedule",
+      "description": "Create a charging schedule, or update one by its ID. When updating, omitted fields keep their current values. Turn schedules on and off with their switches; the charger follows them when its charge mode is Schedule.",
+      "fields": {
+        "device_id": {
+          "name": "Charger",
+          "description": "The Grizzl-E charger (set up through the Grizzl-E Connect cloud)."
+        },
+        "schedule_id": {
+          "name": "Schedule ID",
+          "description": "ID of the schedule to update (the schedule_id attribute of its switch). Leave empty to create a new schedule."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name shown in the app."
+        },
+        "start": {
+          "name": "Start",
+          "description": "Start time, in the charger's timezone."
+        },
+        "end": {
+          "name": "End",
+          "description": "End time, in the charger's timezone."
+        },
+        "days": {
+          "name": "Days",
+          "description": "Days the window applies to. Defaults to every day for a new one."
+        },
+        "all_day": {
+          "name": "All day",
+          "description": "Apply all day instead of between start and end."
+        },
+        "current_limit": {
+          "name": "Current limit",
+          "description": "Maximum current while this schedule is active."
+        },
+        "connector": {
+          "name": "Connector",
+          "description": "0 for all connectors, or 1 and 2 for the cables of a Duo."
+        }
+      }
+    },
+    "delete_schedule": {
+      "name": "Delete schedule",
+      "description": "Delete a charging schedule.",
+      "fields": {
+        "device_id": {
+          "name": "Charger",
+          "description": "The Grizzl-E charger (set up through the Grizzl-E Connect cloud)."
+        },
+        "schedule_id": {
+          "name": "Schedule ID",
+          "description": "ID of the schedule to delete (the schedule_id attribute of its switch)."
+        }
+      }
+    },
+    "set_rate_zone": {
+      "name": "Set rate zone",
+      "description": "Create a time-of-use electricity rate zone, or update one by its ID. When updating, omitted fields keep their current values.",
+      "fields": {
+        "device_id": {
+          "name": "Charger",
+          "description": "The Grizzl-E charger (set up through the Grizzl-E Connect cloud)."
+        },
+        "zone_id": {
+          "name": "Rate zone ID",
+          "description": "ID of the rate zone to update (the schedule_id attribute of its switch). Leave empty to create a new rate zone."
+        },
+        "price": {
+          "name": "Price",
+          "description": "Price per kWh in the station's currency."
+        },
+        "name": {
+          "name": "Name",
+          "description": "Name shown in the app."
+        },
+        "start": {
+          "name": "Start",
+          "description": "Start time, in the charger's timezone."
+        },
+        "end": {
+          "name": "End",
+          "description": "End time, in the charger's timezone."
+        },
+        "days": {
+          "name": "Days",
+          "description": "Days the window applies to. Defaults to every day for a new one."
+        },
+        "all_day": {
+          "name": "All day",
+          "description": "Apply all day instead of between start and end."
+        },
+        "summer_price": {
+          "name": "Summer price",
+          "description": "Separate price per kWh for the summer season."
+        }
+      }
+    },
+    "delete_rate_zone": {
+      "name": "Delete rate zone",
+      "description": "Delete a time-of-use electricity rate zone.",
+      "fields": {
+        "device_id": {
+          "name": "Charger",
+          "description": "The Grizzl-E charger (set up through the Grizzl-E Connect cloud)."
+        },
+        "zone_id": {
+          "name": "Rate zone ID",
+          "description": "ID of the rate zone to delete (the schedule_id attribute of its switch)."
+        }
+      }
+    },
+    "set_base_rate": {
+      "name": "Set base rate",
+      "description": "Set the base electricity price per kWh used outside rate zones.",
+      "fields": {
+        "device_id": {
+          "name": "Charger",
+          "description": "The Grizzl-E charger (set up through the Grizzl-E Connect cloud)."
+        },
+        "price": {
+          "name": "Price",
+          "description": "Price per kWh in the station's currency."
+        }
+      }
+    }
   }
 }
