@@ -8,7 +8,6 @@ a React Native / Hermes app. Everything here talks to United Chargers' cloud
 Usage examples:
     ./grizzle_connect.py login you@example.com
     ./grizzle_connect.py import-tokens          # Sign in with Apple accounts: paste tokens captured from the app
-    ./grizzle_connect.py apple-login
     ./grizzle_connect.py stations
     ./grizzle_connect.py station <STATION_ID>
     ./grizzle_connect.py mode <STATION_ID> Schedule
@@ -99,19 +98,6 @@ class GrizzleConnect:
         data = self.request("POST", "/client/auth/login", {"emailOrPhone": email_or_phone, "password": password})
         if isinstance(data, dict) and data.get("isVerified") is False:
             raise GrizzleConnectError("Account is not verified; finish email verification in the app first")
-        self._store_credentials(data)
-        return data
-
-    def login_apple(self, identity_token: str, email: str | None = None,
-                    first_name: str | None = None, last_name: str | None = None) -> dict:
-        """Exchange an Apple identityToken (a JWT from the iOS app's Sign in with Apple) for API tokens.
-
-        Mirrors useAppleAuth: the app only ever sends a token minted by the native iOS
-        sign-in, so it has to be captured from the iPhone app's traffic. It expires after ~10 min.
-        """
-        body = {"token": identity_token,
-                "user": {"email": email, "name": {"firstName": first_name, "lastName": last_name}}}
-        data = self.request("POST", "/client/auth/apple", body)
         self._store_credentials(data)
         return data
 
@@ -248,9 +234,6 @@ def main() -> None:
     s = sub.add_parser("login")
     s.add_argument("email_or_phone")
 
-    s = sub.add_parser("apple-login", help="log in with an Apple identityToken captured from the iOS app")
-    s.add_argument("--email")
-
     sub.add_parser("import-tokens", help="save a token/refreshToken pair captured from the app's traffic")
 
     sub.add_parser("stations")
@@ -316,12 +299,6 @@ def main() -> None:
             data = client.login(args.email_or_phone, getpass.getpass("Password: "))
             user = data.get("user") or {}
             print(f"Logged in as {user.get('email') or args.email_or_phone}; tokens saved to {TOKEN_FILE}")
-            return
-        if args.cmd == "apple-login":
-            client = GrizzleConnect()
-            data = client.login_apple(getpass.getpass("Apple identityToken: ").strip(), args.email)
-            user = data.get("user") or {}
-            print(f"Logged in as {user.get('email') or 'Apple user'}; tokens saved to {TOKEN_FILE}")
             return
         if args.cmd == "import-tokens":
             client = GrizzleConnect(getpass.getpass("token: ").strip(), getpass.getpass("refreshToken: ").strip())
