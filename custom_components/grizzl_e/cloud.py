@@ -41,7 +41,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-CLOUD_PLATFORMS = ["sensor", "binary_sensor"]
+CLOUD_PLATFORMS = ["sensor", "binary_sensor", "select", "number", "switch", "button"]
 
 # OCPP connector statuses that mean a vehicle is plugged in.
 PLUGGED_IN_STATUSES = {"Preparing", "Charging", "SuspendedEV", "SuspendedEVSE", "Finishing"}
