@@ -1,0 +1,79 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to Grizzl-E Charger",
+        "description": "Choose how Home Assistant should talk to your Grizzl-E EVSE.",
+        "menu_options": {
+          "connection": "Local: the charger's web interface (Page Access)",
+          "cloud": "Grizzl-E Connect cloud: email and password"
+        }
+      },
+      "connection": {
+        "title": "Connect to Grizzl-E Charger",
+        "description": "Enter connection details for your Grizzl-E EVSE",
+        "data": {
+          "host": "Host (IP or hostname)",
+          "username": "Username",
+          "password": "Password"
+        }
+      },
+      "ports": {
+        "title": "Number of Ports",
+        "description": "Select the number of charging ports on your Grizzl-E device",
+        "data": {
+          "ports": "EVSE ports"
+        }
+      },
+      "cloud": {
+        "title": "Grizzl-E Connect",
+        "description": "Sign in with the account you use in the Grizzl-E Connect app.",
+        "data": {
+          "email": "Email or phone",
+          "password": "Password"
+        }
+      },
+      "station": {
+        "title": "Choose a charger",
+        "description": "Select the charger to add. Add the integration again for each additional charger.",
+        "data": {
+          "station_id": "Charger"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Sign in to Grizzl-E Connect again",
+        "description": "Grizzl-E Connect no longer accepts the saved credentials for {account}.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "invalid_auth": "Authentication failed",
+      "timeout": "Connection timed out",
+      "unknown": "Unknown error",
+      "account_not_verified": "This account's email address isn't verified yet. Finish verification in the Grizzl-E Connect app first.",
+      "station_not_found": "This charger isn't on that Grizzl-E Connect account."
+    },
+    "abort": {
+      "already_configured": "This charger is already configured",
+      "no_stations": "There are no chargers on this Grizzl-E Connect account",
+      "reauth_successful": "Re-authentication was successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Grizzl-E Options",
+        "description": "Configure the polling frequency for your charger. Cloud connections can't poll more often than every 10 seconds.",
+        "data": {
+          "scan_interval": "Update Interval (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often (in seconds) Home Assistant fetches data from the charger or the Grizzl-E Connect cloud."
+        }
+      }
+    }
+  }
+}
