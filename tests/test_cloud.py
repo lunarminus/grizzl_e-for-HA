@@ -13,7 +13,8 @@ from homeassistant.config_entries import ConfigEntryState
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from homeassistant.core import State
+from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_restore_cache
 from pytest_homeassistant_custom_component.test_util.aiohttp import AiohttpClientMockResponse
 
 from custom_components.grizzl_e.const import (
@@ -479,3 +480,102 @@ async def test_station_missing_from_account_retries(hass, aioclient_mock):
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
     assert entry.state is ConfigEntryState.SETUP_RETRY
+
+
+# --- adding a schedule from the dashboard --------------------------------------
+
+
+async def test_add_schedule_from_dashboard(hass, aioclient_mock):
+    entry = await setup_cloud(hass, aioclient_mock)
+    assert state(hass, "text", entry, "new_schedule_name").state == "New schedule"
+    assert state(hass, "time", entry, "new_schedule_start").state == "23:00:00"
+    assert state(hass, "time", entry, "new_schedule_end").state == "07:00:00"
+    assert state(hass, "switch", entry, "new_schedule_day_monday").state == "on"
+
+    await hass.services.async_call(
+        "text", "set_value",
+        {"entity_id": entity_id(hass, "text", entry, "new_schedule_name"), "value": "Overnight"},
+        blocking=True,
+    )
+    await hass.services.async_call(
+        "time", "set_value",
+        {"entity_id": entity_id(hass, "time", entry, "new_schedule_start"), "time": "22:15:30"},
+        blocking=True,
+    )
+    await hass.services.async_call(
+        "time", "set_value",
+        {"entity_id": entity_id(hass, "time", entry, "new_schedule_end"), "time": "06:45"},
+        blocking=True,
+    )
+    for day in ("saturday", "sunday"):
+        await hass.services.async_call(
+            "switch", "turn_off",
+            {"entity_id": entity_id(hass, "switch", entry, f"new_schedule_day_{day}")},
+            blocking=True,
+        )
+    assert state(hass, "time", entry, "new_schedule_start").state == "22:15:00"
+    assert state(hass, "switch", entry, "new_schedule_day_sunday").state == "off"
+
+    aioclient_mock.post(f"{API}/client/stations/{STATION_ID}/scheduleUpdate", json={})
+    await hass.services.async_call(
+        "button", "press", {"entity_id": entity_id(hass, "button", entry, "add_schedule")}, blocking=True
+    )
+    assert calls(aioclient_mock, "POST")[-1][1] == {
+        "price": {
+            "name": "Overnight", "startHours": 22, "startMinutes": 15, "endHours": 6, "endMinutes": 45,
+            "allDay": False, "days": [1, 2, 3, 4, 5], "isSchedule": True, "currentLimit": None,
+            "connectorId": 0,
+        }
+    }
+    # The day switches aren't mistaken for schedules and removed on refresh.
+    await hass.data[DOMAIN][entry.entry_id]["coordinator"].async_refresh()
+    await hass.async_block_till_done()
+    assert state(hass, "switch", entry, "new_schedule_day_monday").state == "on"
+
+
+async def test_add_schedule_needs_a_day(hass, aioclient_mock):
+    entry = await setup_cloud(hass, aioclient_mock)
+    for day in ("monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"):
+        await hass.services.async_call(
+            "switch", "turn_off",
+            {"entity_id": entity_id(hass, "switch", entry, f"new_schedule_day_{day}")},
+            blocking=True,
+        )
+    with pytest.raises(HomeAssistantError, match="at least one"):
+        await hass.services.async_call(
+            "button", "press", {"entity_id": entity_id(hass, "button", entry, "add_schedule")}, blocking=True
+        )
+    assert not calls(aioclient_mock, "POST")
+
+
+async def test_add_schedule_needs_a_name(hass, aioclient_mock):
+    entry = await setup_cloud(hass, aioclient_mock)
+    hass.data[DOMAIN][entry.entry_id]["coordinator"].schedule_draft.name = "   "
+    with pytest.raises(HomeAssistantError, match="name"):
+        await hass.services.async_call(
+            "button", "press", {"entity_id": entity_id(hass, "button", entry, "add_schedule")}, blocking=True
+        )
+    assert not calls(aioclient_mock, "POST")
+
+
+async def test_new_schedule_fields_survive_restart(hass, aioclient_mock):
+    entry = cloud_entry()
+    entry_id = entry.entry_id
+    mock_restore_cache(
+        hass,
+        [
+            State("text.grd_l0000000001_new_schedule_name", "Weekend top-up"),
+            State("time.grd_l0000000001_new_schedule_start", "09:30:00"),
+            State("switch.grd_l0000000001_new_schedule_monday", "off"),
+        ],
+    )
+    aioclient_mock.get(f"{API}/client/stations", json=stations_payload())
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry_id)
+    await hass.async_block_till_done()
+
+    draft = hass.data[DOMAIN][entry_id]["coordinator"].schedule_draft
+    assert draft.name == "Weekend top-up"
+    assert (draft.start.hour, draft.start.minute) == (9, 30)
+    assert 1 not in draft.days
+    assert state(hass, "switch", entry, "new_schedule_day_monday").state == "off"

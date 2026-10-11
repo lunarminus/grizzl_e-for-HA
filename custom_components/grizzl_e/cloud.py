@@ -3,7 +3,8 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable
-from datetime import datetime, timedelta
+from dataclasses import dataclass, field
+from datetime import datetime, time, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -41,7 +42,7 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-CLOUD_PLATFORMS = ["sensor", "binary_sensor", "select", "number", "switch", "button"]
+CLOUD_PLATFORMS = ["sensor", "binary_sensor", "select", "number", "switch", "button", "text", "time"]
 
 # OCPP connector statuses that mean a vehicle is plugged in.
 PLUGGED_IN_STATUSES = {"Preparing", "Charging", "SuspendedEV", "SuspendedEVSE", "Finishing"}
@@ -71,6 +72,20 @@ def create_cloud_client(hass: HomeAssistant, entry: ConfigEntry) -> GrizzleConne
     )
 
 
+@dataclass
+class ScheduleDraft:
+    """A schedule being filled in from the dashboard before it's added.
+
+    Edited through the "New Schedule" text, time and switch entities and saved
+    to the cloud by the "Add Schedule" button. ``days`` uses 0=Sunday .. 6=Saturday.
+    """
+
+    name: str = "New schedule"
+    start: time = time(23, 0)
+    end: time = time(7, 0)
+    days: set[int] = field(default_factory=lambda: set(range(7)))
+
+
 class GrizzleECloudCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Polls the cloud for one station. ``data`` is that station's raw payload."""
 
@@ -85,6 +100,7 @@ class GrizzleECloudCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.client = client
         self.station_id: str = entry.data[CONF_STATION_ID]
+        self.schedule_draft = ScheduleDraft()
 
     async def _async_update_data(self) -> dict[str, Any]:
         try:

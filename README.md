@@ -82,6 +82,7 @@ Entities:
 - **Number**: Current Limit, capped at the charger's DIP switch setting
 - **Switches**: one per schedule and rate zone, to turn it on or off. The `schedule_id` attribute is the ID used by the services below.
 - **Button**: Reboot
+- **Add a schedule from the dashboard**: fill in New Schedule Name, New Schedule Start, New Schedule End and the New Schedule day switches (Monday to Sunday), then press **Add Schedule**. The new schedule gets its own switch once the cloud reports it. These entities are on the device page under Configuration and can be added to any dashboard. The values you enter are kept across restarts. For a current limit, a Duo connector or editing an existing schedule, use the `grizzl_e.set_schedule` action below.
 
 On a Grizzl-E Duo, per-connector entities get a "Port 1" / "Port 2" suffix.
 
