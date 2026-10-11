@@ -1,7 +1,6 @@
 # Changelog
 
 ## Unreleased
-- **Add a schedule from the dashboard**: New Schedule name, start and end time, and day entities, plus an Add Schedule button (cloud entries)
 - **Grizzl-E Connect cloud support**, alongside the existing local web interface connection. When adding the integration, choose Local or Grizzl-E Connect cloud (email and password).
     - Sensors and binary sensors for station and per-connector status, power, current, voltage, temperature, and session energy, time and cost
     - Charge Mode select (Active / Inactive / Schedule), Current Limit number, Reboot button, and a switch per schedule or rate zone

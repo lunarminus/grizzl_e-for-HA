@@ -9,7 +9,6 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.core import callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.restore_state import RestoreEntity
 
 from .cloud import GrizzleECloudEntity, is_cloud_entry
 from .const import DOMAIN, WEEKDAYS
@@ -54,9 +53,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
             and registry_entry.unique_id[len(prefix):] not in current
         ):
             registry.async_remove(registry_entry.entity_id)
-
-    # Days for the schedule the Add Schedule button creates, listed Monday first like the app.
-    async_add_entities(GrizzleENewScheduleDaySwitch(coordinator, day) for day in (1, 2, 3, 4, 5, 6, 0))
 
     sync_schedules()
     entry.async_on_unload(coordinator.async_add_listener(sync_schedules))
@@ -130,42 +126,6 @@ class GrizzleEScheduleSwitch(GrizzleECloudEntity, SwitchEntity):
         await self.coordinator.async_command(
             self.coordinator.client.enable_schedule(self.coordinator.station_id, self.zone_id, enabled)
         )
-
-
-class GrizzleENewScheduleDaySwitch(GrizzleECloudEntity, RestoreEntity, SwitchEntity):
-    """Whether the schedule the Add Schedule button creates runs on this day."""
-
-    _attr_entity_category = EntityCategory.CONFIG
-    _attr_icon = "mdi:calendar-today"
-
-    def __init__(self, coordinator, day):
-        day_name = WEEKDAYS[day]
-        super().__init__(coordinator, f"new_schedule_day_{day_name}", f"New Schedule {day_name.capitalize()}")
-        self.day = day
-
-    async def async_added_to_hass(self):
-        await super().async_added_to_hass()
-        last_state = await self.async_get_last_state()
-        if last_state is not None and last_state.state in ("on", "off"):
-            self._set_day(last_state.state == "on")
-
-    @property
-    def is_on(self):
-        return self.day in self.coordinator.schedule_draft.days
-
-    async def async_turn_on(self, **kwargs):
-        self._set_day(True)
-        self.async_write_ha_state()
-
-    async def async_turn_off(self, **kwargs):
-        self._set_day(False)
-        self.async_write_ha_state()
-
-    def _set_day(self, enabled):
-        if enabled:
-            self.coordinator.schedule_draft.days.add(self.day)
-        else:
-            self.coordinator.schedule_draft.days.discard(self.day)
 
 
 def _day_names(days):
