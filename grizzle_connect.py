@@ -94,8 +94,9 @@ class GrizzleConnect:
 
     # --- auth --------------------------------------------------------------
 
-    def login(self, email_or_phone: str, password: str) -> dict:
-        data = self.request("POST", "/client/auth/login", {"emailOrPhone": email_or_phone, "password": password})
+    def login(self, email: str, password: str) -> dict:
+        # emailOrPhone is the API's field name; only email sign-in is supported.
+        data = self.request("POST", "/client/auth/login", {"emailOrPhone": email, "password": password})
         if isinstance(data, dict) and data.get("isVerified") is False:
             raise GrizzleConnectError("Account is not verified; finish email verification in the app first")
         self._store_credentials(data)
@@ -232,7 +233,7 @@ def main() -> None:
     sub = p.add_subparsers(dest="cmd", required=True)
 
     s = sub.add_parser("login")
-    s.add_argument("email_or_phone")
+    s.add_argument("email")
 
     sub.add_parser("import-tokens", help="save a token/refreshToken pair captured from the app's traffic")
 
@@ -296,9 +297,9 @@ def main() -> None:
     try:
         if args.cmd == "login":
             client = GrizzleConnect()
-            data = client.login(args.email_or_phone, getpass.getpass("Password: "))
+            data = client.login(args.email, getpass.getpass("Password: "))
             user = data.get("user") or {}
-            print(f"Logged in as {user.get('email') or args.email_or_phone}; tokens saved to {TOKEN_FILE}")
+            print(f"Logged in as {user.get('email') or args.email}; tokens saved to {TOKEN_FILE}")
             return
         if args.cmd == "import-tokens":
             client = GrizzleConnect(getpass.getpass("token: ").strip(), getpass.getpass("refreshToken: ").strip())

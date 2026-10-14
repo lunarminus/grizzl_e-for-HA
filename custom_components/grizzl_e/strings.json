@@ -29,7 +29,7 @@
         "title": "Grizzl-E Connect",
         "description": "Sign in with the account you use in the Grizzl-E Connect app.",
         "data": {
-          "email": "Email or phone",
+          "email": "Email",
           "password": "Password"
         }
       },

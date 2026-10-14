@@ -165,7 +165,7 @@ class GrizzleEConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     # --- Grizzl-E Connect cloud ------------------------------------------------
 
     async def async_step_cloud(self, user_input=None):
-        """Log in to Grizzl-E Connect with email (or phone) and password."""
+        """Log in to Grizzl-E Connect with email and password."""
         errors = {}
         if user_input is not None:
             client = GrizzleConnectClient(

@@ -55,7 +55,7 @@ def station_id(station: dict[str, Any]) -> str | None:
 class GrizzleConnectClient:
     """Grizzl-E Connect API client.
 
-    Authenticates with email/phone and password. ``on_tokens_updated`` is called whenever new tokens are issued
+    Authenticates with email and password. ``on_tokens_updated`` is called whenever new tokens are issued
     so they can be persisted.
     """
 
@@ -136,12 +136,13 @@ class GrizzleConnectClient:
     # --- auth --------------------------------------------------------------
 
     async def login(self) -> dict[str, Any]:
-        """Log in with the email/phone and password."""
+        """Log in with the email and password."""
         if not self._email or not self._password:
             raise GrizzleConnectAuthError("No email and password to log in with")
         status, data = await self._send(
             "POST",
             "/client/auth/login",
+            # emailOrPhone is the API's field name; only email sign-in is supported.
             {"emailOrPhone": self._email, "password": self._password},
             authenticated=False,
         )
